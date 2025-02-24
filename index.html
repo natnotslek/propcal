@@ -313,33 +313,50 @@ function generatePDF() {
         return;
     }
 
-    // Wait a bit to allow content rendering before generating the PDF
+    // Clone the content to ensure full capture
+    let clonedElement = element.cloneNode(true);
+
+    // Create a wrapper to ensure full theme color application
+    let wrapper = document.createElement("div");
+    wrapper.style.padding = "20px";
+    wrapper.style.fontFamily = "Arial, sans-serif";
+    wrapper.style.textAlign = "center";
+    wrapper.style.backgroundColor = "#DAD6CD"; // Theme background color
+    wrapper.style.color = "#000000"; // Text color
+    wrapper.style.width = "100%";
+    wrapper.style.minHeight = "100vh"; // Ensure full page coverage
+
+    // Append Silverstone logo to the top of the PDF
+    let logo = document.createElement("img");
+    logo.src = "silverstone_logo.png";  // Ensure this file is uploaded correctly
+    logo.style.display = "block";
+    logo.style.margin = "0 auto 20px";
+    logo.style.maxWidth = "150px";
+    
+    wrapper.appendChild(logo);
+    wrapper.appendChild(clonedElement);
+
+    // Ensure the cloned content is fully loaded before generating the PDF
+    document.body.appendChild(wrapper);
+
     setTimeout(() => {
         let opt = {
-            margin: 10,
+            margin: 0,
             filename: `property_breakdown_${Date.now()}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
+            image: { type: 'jpeg', quality: 1 },
+            html2canvas: { scale: 3, useCORS: true, backgroundColor: "#DAD6CD" },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
         html2pdf()
             .set(opt)
-            .from(element)
-            .toPdf()
-            .get('pdf')
-            .then(function (pdf) {
-                pdf.setFont("helvetica");
-                pdf.setTextColor(40, 40, 40);
+            .from(wrapper)
+            .save()
+            .then(() => {
+                document.body.removeChild(wrapper); // Remove the temporary wrapper after saving
+            });
 
-                // Add Silverstone logo at the top of the PDF
-                let img = new Image();
-                img.src = 'silverstone_logo.png'; // Ensure this is in the same directory
-                pdf.addImage(img, 'PNG', 75, 10, 60, 20);
-                pdf.text("PROPERTY BREAKDOWN", 15, 40);
-            })
-            .save();
-    }, 500);  // 500ms delay ensures content is fully rendered
+    }, 1000); // Delay ensures content is fully rendered
 }
     
 function sendViaWhatsApp() {
