@@ -216,13 +216,15 @@ function calculateRental() {
     const deposit = furnished === "furnished" ? 10000 : 5000;
     const chequeAmount = (price / cheques).toFixed(2);
     
-    // Date calculations
-    let dates = [];
-    let currentDate = new Date(moveInDate);
-    for(let i = 0; i < cheques; i++) {
-        dates.push(currentDate.toLocaleDateString("en-GB"));
-        currentDate.setMonth(currentDate.getMonth() + 3);
-    }
+// Date calculations - Ensuring a 12-month rental contract
+let dates = [];
+let currentDate = new Date(moveInDate);
+let monthsPerCheque = Math.floor(12 / cheques);  // Ensuring full contract coverage
+
+for(let i = 0; i < cheques; i++) {
+    dates.push(currentDate.toLocaleDateString("en-GB"));
+    currentDate.setMonth(currentDate.getMonth() + monthsPerCheque);
+}
 
     // Display results
     const resultsHTML = `
