@@ -313,10 +313,14 @@ function generatePDF() {
         return;
     }
 
-    // Clone the content to ensure full capture
+    // Force a reflow to make sure all dynamic content is properly loaded
+    element.style.display = "block";
+    document.body.offsetHeight; // Trigger reflow
+
+    // Clone the content for proper capture
     let clonedElement = element.cloneNode(true);
 
-    // Create a wrapper to ensure full theme color application
+    // Create a wrapper to apply the full theme background
     let wrapper = document.createElement("div");
     wrapper.style.padding = "20px";
     wrapper.style.fontFamily = "Arial, sans-serif";
@@ -326,9 +330,9 @@ function generatePDF() {
     wrapper.style.width = "100%";
     wrapper.style.minHeight = "100vh"; // Ensure full page coverage
 
-    // Append Silverstone logo to the top of the PDF
+    // Append Silverstone logo
     let logo = document.createElement("img");
-    logo.src = "silverstone_logo.png";  // Ensure this file is uploaded correctly
+    logo.src = "silverstone_logo.png";  // Ensure this file is uploaded
     logo.style.display = "block";
     logo.style.margin = "0 auto 20px";
     logo.style.maxWidth = "150px";
@@ -336,7 +340,7 @@ function generatePDF() {
     wrapper.appendChild(logo);
     wrapper.appendChild(clonedElement);
 
-    // Ensure the cloned content is fully loaded before generating the PDF
+    // Append to the body to ensure it's visible for rendering
     document.body.appendChild(wrapper);
 
     setTimeout(() => {
@@ -353,10 +357,10 @@ function generatePDF() {
             .from(wrapper)
             .save()
             .then(() => {
-                document.body.removeChild(wrapper); // Remove the temporary wrapper after saving
+                document.body.removeChild(wrapper); // Remove temporary wrapper after saving
             });
 
-    }, 1000); // Delay ensures content is fully rendered
+    }, 2000); // Increased delay to 2 seconds for better rendering
 }
     
 function sendViaWhatsApp() {
