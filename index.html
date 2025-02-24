@@ -313,33 +313,35 @@ function generatePDF() {
         return;
     }
 
-    let opt = {
-        margin: 10,
-        filename: `property_breakdown_${Date.now()}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
+    // Wait a bit to allow content rendering before generating the PDF
+    setTimeout(() => {
+        let opt = {
+            margin: 10,
+            filename: `property_breakdown_${Date.now()}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
 
-    html2pdf()
-        .set(opt)
-        .from(element)
-        .toPdf()
-        .get('pdf')
-        .then(function (pdf) {
-            pdf.setFont("helvetica");
-            pdf.setTextColor(40, 40, 40);
+        html2pdf()
+            .set(opt)
+            .from(element)
+            .toPdf()
+            .get('pdf')
+            .then(function (pdf) {
+                pdf.setFont("helvetica");
+                pdf.setTextColor(40, 40, 40);
 
-            // Add Silverstone logo at the top of the PDF
-            let img = new Image();
-            img.src = 'silverstone_logo.png'; // Ensure this image is in the same directory as your HTML file
-
-            pdf.addImage(img, 'PNG', 75, 10, 60, 20);
-            pdf.text("PROPERTY BREAKDOWN", 15, 40);
-        })
-        .save();
+                // Add Silverstone logo at the top of the PDF
+                let img = new Image();
+                img.src = 'silverstone_logo.png'; // Ensure this is in the same directory
+                pdf.addImage(img, 'PNG', 75, 10, 60, 20);
+                pdf.text("PROPERTY BREAKDOWN", 15, 40);
+            })
+            .save();
+    }, 500);  // 500ms delay ensures content is fully rendered
 }
-
+    
 function sendViaWhatsApp() {
     const number = document.getElementById("whatsappNumber").value.replace(/[^0-9]/g, '');
     if (number) {
