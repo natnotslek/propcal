@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dubai Property Calculator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #000000;
+            --secondary-color: #8B7969;
+            --accent-color: #C0A080;
+            --background-color: #DAD6CD;
+            --text-color: #000000;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .company-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .company-logo img {
+            max-width: 200px;
+            height: auto;
+        }
+
+        .section {
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        input, select {
+            width: 100%;
+            box-sizing: border-box;
+            width: calc(100% - 20px);
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        button {
+            background-color: var(--secondary-color);
+            color: var(--white);
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: var(--primary-color);
+        }
+
+        .result {
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            padding: 20px;
+        }
+
+        .important-total {
+            background-color: #ecf0f1;
+            border-left: 4px solid var(--accent-color);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="company-logo">
+        <img src="silverstone_logo.png" alt="Silverstone Luxury Realty Logo">
+    </div>
+
+    <h1 style="text-align: center;">PROPERTY CALCULATOR</h1>
+
+    <!-- Always Visible Sections -->
+    <div class="section active">
+        <label>Buyer Name:</label>
+        <input type="text" id="buyerName" placeholder="Enter name">
+    </div>
+
+    <div class="section active">
+        <label>Transaction Type:</label>
+        <select id="purchaseType" onchange="toggleSections()">
+            <option value="rental">Rental</option>
+            <option value="secondary">Secondary Market</option>
+        </select>
+    </div>
+
+    <!-- Rental Calculator -->
+    <div id="rentalSection" class="section">
+        <h3>Rental Details</h3>
+        <label>Annual Rent (AED):</label>
+        <input type="number" id="rentalPrice">
+        
+        <label>Furnishing:</label>
+        <select id="furnishing">
+            <option value="furnished">Furnished</option>
+            <option value="unfurnished">Unfurnished</option>
+        </select>
+
+        <label>Number of Cheques:</label>
+        <input type="number" id="numCheques" value="4">
+
+        <label>Move-in Date:</label>
+        <input type="date" id="moveInDate">
+        
+        <button onclick="calculateRental()">Calculate</button>
+    </div>
+
+    <!-- Secondary Market Calculator -->
+    <div id="secondarySection" class="section">
+        <h3>Secondary Market Details</h3>
+        <label>Property Price (AED):</label>
+        <input type="number" id="propertyPrice">
+        
+        <label>Payment Method:</label>
+        <select id="paymentMethod">
+            <option value="cash">Cash</option>
+            <option value="mortgage">Mortgage</option>
+        </select>
+        
+        <button onclick="calculateSecondary()">Calculate</button>
+    </div>
+
+    <!-- Results Display -->
+    <div id="results" class="section result"></div>
+
+    <div class="footer">
+        &copy; 2024 Property Experts. All rights reserved.
+    </div>
+
+<script>
+// Initialize calculator on load
+document.addEventListener('DOMContentLoaded', function() {
+    toggleSections();
+});
+
+// Section visibility control
+function toggleSections() {
+    const type = document.getElementById("purchaseType").value;
+    
+    // Hide all calculator sections
+    document.querySelectorAll('#rentalSection, #secondarySection').forEach(section => {
+        section.classList.remove('active');
+    });
+    
+    // Show selected section
+    if(type === 'rental') {
+        document.getElementById('rentalSection').classList.add('active');
+    } else {
+        document.getElementById('secondarySection').classList.add('active');
+    }
+    
+    // Clear previous results
+    document.getElementById("results").innerHTML = '';
+    document.getElementById("results").classList.remove('active');
+}
+
+// Rental calculation function
+function calculateRental() {
+    const buyerName = document.getElementById("buyerName").value || "Client";
+    const price = parseFloat(document.getElementById("rentalPrice").value) || 0;
+    const furnished = document.getElementById("furnishing").value;
+    const cheques = parseInt(document.getElementById("numCheques").value) || 1;
+    const moveInDate = new Date(document.getElementById("moveInDate").value);
+
+    // Commission calculation
+    let commission = price < 100000 ? 5000 * 1.05 : (price * 0.05) * 1.05;
+    const deposit = furnished === "furnished" ? 10000 : 5000;
+    const chequeAmount = (price / cheques).toFixed(2);
+    
+    // Date calculations
+    let dates = [];
+    let currentDate = new Date(moveInDate);
+    for(let i = 0; i < cheques; i++) {
+        dates.push(currentDate.toLocaleDateString("en-GB"));
+        currentDate.setMonth(currentDate.getMonth() + 3);
+    }
+
+    // Display results
+    const resultsHTML = `
+        <div class="active">
+            <h3>Rental Breakdown for ${buyerName}</h3>
+            <p>Security Deposit: AED ${deposit.toLocaleString()}</p>
+            <p>Commission + VAT: AED ${commission.toLocaleString()}</p>
+            <p>Payment Schedule (${cheques} cheques):</p>
+            <ul>${dates.map(d => `<li>${d}: AED ${chequeAmount}</li>`).join("")}</ul>
+            ${createShareButtons()}
+        </div>
+    `;
+    
+    document.getElementById("results").innerHTML = resultsHTML;
+    document.getElementById("results").classList.add('active');
+}
+
+// Secondary market calculation function
+function calculateSecondary() {
+    const buyerName = document.getElementById("buyerName").value || "Client";
+    const price = parseFloat(document.getElementById("propertyPrice").value) || 0;
+    const method = document.getElementById("paymentMethod").value;
+
+    // Fee calculations
+    const dldFee = price * 0.04;
+    const trusteeFee = price > 500000 ? 4200 : 2100;
+    const buyersFee = (price * 0.02) * 1.05;
+    const conveyancing = 7000 * 1.05;
+    const titleDeed = 580;
+    const isMortgage = method === "mortgage";
+    const downPayment = isMortgage ? price * 0.2 : 0;
+    const upfrontCost = isMortgage ? (downPayment + dldFee + trusteeFee + buyersFee + conveyancing + titleDeed) : (price + dldFee + trusteeFee + buyersFee + conveyancing + titleDeed);
+    const totalCost = price + dldFee + trusteeFee + buyersFee + conveyancing + titleDeed;
+
+    const resultsHTML = `
+        <div class="active">
+            <h3>Secondary Market Breakdown for ${buyerName}</h3>
+            <p>Payment Method: ${method.toUpperCase()}</p>
+            <div class="important-total">
+                <h4>Immediate Upfront Costs:</h4>
+                ${isMortgage ? `<p>• Down Payment (20%): AED ${downPayment.toLocaleString()}</p>` : ''}
+                <p>• DLD Fee (4%): AED ${dldFee.toLocaleString()}</p>
+                <p>• Trustee Fee: AED ${trusteeFee.toLocaleString()}</p>
+                <p>• Buyer's Fee: AED ${buyersFee.toLocaleString()}</p>
+                <p>• Conveyancing: AED ${conveyancing.toLocaleString()}</p>
+                <p>• Title Deed: AED ${titleDeed.toLocaleString()}</p>
+                ${!isMortgage ? `<p>• Full Property Price: AED ${price.toLocaleString()}</p>` : ''}
+                <p style="font-weight:bold">Total Upfront Payment: AED ${upfrontCost.toLocaleString()}</p>
+            </div>
+            ${isMortgage ? `
+                <div class="important-total">
+                    <h4>Future Payments:</h4>
+                    <p>• Remaining Balance: AED ${(price - downPayment).toLocaleString()}</p>
+                </div>
+            ` : ''}
+            <div class="important-total">
+                <h4>Total Transaction Value:</h4>
+                <p>AED ${totalCost.toLocaleString()}</p>
+            </div>
+            ${createShareButtons()}
+        </div>
+    `;
+    
+    document.getElementById("results").innerHTML = resultsHTML;
+    document.getElementById("results").classList.add('active');
+}
+
+// Shared functions
+function createShareButtons() {
+    return `
+        <div class="share-section">
+            <button onclick="generatePDF()">Download PDF</button>
+            <div style="margin-top: 10px;">
+                <input type="text" id="whatsappNumber" placeholder="971501234567">
+                <button onclick="sendViaWhatsApp()" style="background: #25D366;">Send via WhatsApp</button>
+            </div>
+        </div>
+    `;
+}
+
+function generatePDF() {
+    const element = document.getElementById("results");
+    html2pdf().set({
+        margin: 15,
+        filename: `property_report_${Date.now()}.pdf`,
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4' }
+    }).from(element).save();
+}
+
+function sendViaWhatsApp() {
+    const number = document.getElementById("whatsappNumber").value.replace(/[^0-9]/g, '');
+    if (number) {
+        const content = document.getElementById("results").innerText;
+        const message = encodeURIComponent("Property Breakdown:\n\n" + content);
+        window.open(`https://wa.me/${number}?text=${message}`, '_blank');
+    } else {
+        alert("Please enter a valid WhatsApp number (e.g., 971501234567)");
+    }
+}
+</script>
+</body>
+</html>
